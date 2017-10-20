@@ -146,11 +146,19 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Multiset.h" />
+    <ClInclude Include="RandomNumbers.h" />
+    <ClInclude Include="Simulators.h" />
+    <ClInclude Include="SpeciesReaction.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Multiset.cpp" />
+    <ClCompile Include="RandomNumbers.cpp" />
     <ClCompile Include="ReactionDiffusion.cpp" />
+    <ClCompile Include="Simulators.cpp" />
+    <ClCompile Include="SpeciesReaction.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
