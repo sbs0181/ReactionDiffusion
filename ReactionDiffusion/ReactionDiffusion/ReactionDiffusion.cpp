@@ -7,36 +7,37 @@
 #include <numeric>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 #include "Multiset.h"
 #include "SpeciesReaction.h"
 #include "RandomNumbers.h"
 #include "Simulators.h"
+#include "VectorStuff.h"
 
 using namespace std;
 
-class RDME : public Simulation {
-
-};
 
 int main()
 {
 	set_seed();
-	Species E("E", 0.0, 3);
-	Species S("S", 0.0, 10);
-	Species C("C", 0.0, 0);
-	vector<Species> SpeciesList = { E,S,C };
-	Reaction kf("E+S>C", 1.0,SpeciesList);
-	Reaction kr("C>E+S", 1.0, SpeciesList);
-	Reaction kcat("C>E", 1.0, SpeciesList);
-	Reaction kin(">S", 1.0, SpeciesList);
-
-	Gillespie g;
+	Species e("e", 0.1, 30, 3);
+	vector<Species> SpeciesList = { e };
+	Reaction k1(">e", 100.0, SpeciesList);
+	Reaction k2("e+e>", 1.0, SpeciesList);
+	RDME g;
 	g.finaltime = 10.0;
-	g.reactionlist = { kf,kr,kcat,kin };
-	g.specieslist = SpeciesList;
-	g.Simulate();
+	g.reactionlist = { k1,k2 };
 	
+	//for (int i = -3; i < 3; i++) {
+	int i = 2;
+		cout << i;
+		e.difc= pow(10.0, (double)i);
+		g.filename = ("example" + to_string(i) + ".tsv");
+		g.specieslist = { e };
+		g.Simulate();
+	//}
+
 	system("pause");
     return 0;
 }

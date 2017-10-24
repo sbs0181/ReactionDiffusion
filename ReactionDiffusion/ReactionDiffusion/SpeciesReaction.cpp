@@ -6,6 +6,8 @@
 #include <iostream>
 #include "Multiset.h"
 #include "SpeciesReaction.h"
+#include "VectorStuff.h"
+#include "RandomNumbers.h"
 
 using namespace std;
 int fallingpower(int x, int y) {
@@ -25,6 +27,23 @@ int fallingpower(int x, int y) {
 	}
 }
 
+vector<int> fallingpower(vector<int> x, int y) {
+	switch (y) {
+	case 0:
+		return ones(x.size());
+		break;
+	case 1:
+		return x;
+		break;
+	case 2:
+		return ElementwiseProduct<int>(x,VectorPlusScalar<int>(x,-1));
+		break;
+	default:
+		return ones(x.size());
+		break;
+	}
+}
+
 bool Species::operator==(Species &y) {
 	if (y.name == name) {
 		return true;
@@ -38,9 +57,49 @@ void Species::ApplyReaction(Reaction react) {
 	nmols += react.stoichiometry().multiplicity(*this);
 }
 
+void Species::ApplyReaction(Reaction react, int voxindex) {
+	nmolsRDME[voxindex] += react.stoichiometry().multiplicity(*this);
+}
+
+void Species::ApplyDiffusion(int voxindex) {
+	nmolsRDME[voxindex] -=1;
+	double r = unifrnd();
+	if (r < 0.5) {
+		if (voxindex == 0) {
+			nmolsRDME[nmolsRDME.size() - 1] += 1;
+		}
+		else {
+			nmolsRDME[voxindex-1] += 1;
+		}
+	}
+	else {
+		if (voxindex == (nmolsRDME.size()-1)) {
+			nmolsRDME[0] += 1;
+		}
+		else {
+			nmolsRDME[voxindex + 1] += 1;
+		}
+	}
+}
+
+vector<double> Species::diffusionpropensity() {
+	double RDMErate = 2.0*difc*((double)pow(nmolsRDME.size(), 2));
+
+	return VectorTimesScalar<int>(nmolsRDME, RDMErate);
+}
+
 Species::Species(string str, double d, int nm) {
 	name = str; difc = d; nmols = nm;
 }
+
+Species::Species(string str, double d, int nm,int Nv) {
+	nmolsRDME = MultinomialRnd(nm, Nv);
+	difc = d;
+	name = str;
+	nmols = nm;
+}
+
+
 
 Multiset<Species> Reaction::stoichiometry() {
 	Multiset<Species> stoich;
@@ -50,10 +109,16 @@ Multiset<Species> Reaction::stoichiometry() {
 	return stoich;
 }
 
-double Reaction::propensity(vector<Species> specvec){
+double Reaction::NSpropensity(vector<Species> specvec){
 	vector<int> powers(specvec.size());
 	transform(specvec.begin(), specvec.end(), reactants.mset.begin(), powers.begin(), [](Species s, Tuple<Species, int>t) {return fallingpower(s.nmols, t.second); });
 	return rate*accumulate(powers.begin(), powers.end(), 1, multiplies<int>());
+}
+
+vector<double> Reaction::RDMEpropensity(vector<Species> specvec) {
+	vector<vector<int>> powers(specvec.size());
+	transform(specvec.begin(), specvec.end(), reactants.mset.begin(), powers.begin(), [](Species s, Tuple<Species, int>t) {return fallingpower(s.nmolsRDME, t.second); });
+	return VectorTimesScalar<int>(accumulate(powers.begin(), powers.end(), ones(powers[0].size()), [](vector<int> v1, vector<int> v2) {return ElementwiseProduct<int>(v1, v2); }), rate);
 }
 
 Reaction::Reaction(string str, double k, vector<Species> specvec) {
@@ -100,4 +165,3 @@ Reaction::Reaction(string str, double k, vector<Species> specvec) {
 	products = pr;
 
 }
-
